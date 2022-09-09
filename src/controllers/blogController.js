@@ -90,23 +90,29 @@ const getBlogs = async function (req, res) {
           let obj = req.query
           let { authorId, category, tags, subcategory } = obj
 
-          if (Object.keys(obj).length === 0 ) {
+          if (Object.keys(obj).length === 0) {
                return res.status(400).send({ status: false, message: "Please give some parameters to check" })
           }
-        
+
           if (Object.keys(obj).length != 0) {
                if (authorId) {
-               
+
                     // checking whether authorId is valid or not
                     if (!isValid(authorId)) {
                          return res.status(400).send({ status: false, message: "Not a valid Author ID" })
                     }
                }
-               let filter = { isPublished: true, isDeleted: false }
-               if (authorId != null) { filter.authorId = authorId }
-               if (category != null) { filter.category = category }
-               if (tags != null) { filter.tags = { $in: [tags] } }
-               if (subcategory != null) { filter.subcategory = { $in: [subcategory] } }
+               let filter = {}
+               if (authorId) { filter.authorId = authorId }
+               if (category) { filter.category = category }
+               if (tags) { filter.tags = tags }
+               if (subcategory) { filter.subcategory = subcategory }
+
+               if (!Object.keys(filter).length) {
+                    return res.status(400).send({ status: false, message: "Please provide some value to the filter" })
+               }
+               filter.isPublished = true
+               filter.isDeleted = false
                let filtered = await blogModel.find(filter)
                if (filtered.length == 0) {
                     return res.status(404).send({ status: false, message: "No such data found" })
@@ -189,7 +195,7 @@ const deleteByFilter = async function (req, res) {
           if (Object.keys(obj).length === 0) {
                return res.status(400).send({ status: false, message: "Please give some parameters to check" })
           }
-          let check = ["true","false"]
+          let check = ["true", "false"]
           if (isPublished) {
                if (!check.includes(isPublished)) { return res.status(400).send({ status: false, message: "Please give true or false value to isPublished" }) }
           }
@@ -199,8 +205,8 @@ const deleteByFilter = async function (req, res) {
           if (tags) { filter.tags = tags }
           if (subcategory) { filter.subcategory = subcategory }
           if (check.includes(isPublished)) { filter.isPublished = Boolean(isPublished) }
-          if(!Object.keys(filter).length) return res.status(400).send({status:false,message:"Please provide some value to the filter"})
-          if(!authorId) filter.authorId = req.decode.authorId
+          if (!Object.keys(filter).length) return res.status(400).send({ status: false, message: "Please provide some value to the filter" })
+          if (!authorId) filter.authorId = req.decode.authorId
           filter.isDeleted = false;
 
           let filtered = await blogModel.find(filter)
