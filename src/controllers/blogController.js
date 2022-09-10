@@ -88,11 +88,7 @@ const createBlog = async function (req, res) {
 const getBlogs = async function (req, res) {
      try {
           let obj = req.query
-          let { authorId, category, tags, subcategory } = obj
-
-          if (Object.keys(obj).length === 0) {
-               return res.status(400).send({ status: false, message: "Please give some parameters to check" })
-          }
+          let { authorId, category, tags, subcategory, } = obj
 
           if (Object.keys(obj).length != 0) {
                if (authorId) {
@@ -102,17 +98,12 @@ const getBlogs = async function (req, res) {
                          return res.status(400).send({ status: false, message: "Not a valid Author ID" })
                     }
                }
-               let filter = {}
+               let filter = {  isPublished : true, isDeleted : false}
                if (authorId) { filter.authorId = authorId }
                if (category) { filter.category = category }
                if (tags) { filter.tags = tags }
                if (subcategory) { filter.subcategory = subcategory }
 
-               if (!Object.keys(filter).length) {
-                    return res.status(400).send({ status: false, message: "Please provide some value to the filter" })
-               }
-               filter.isPublished = true
-               filter.isDeleted = false
                let filtered = await blogModel.find(filter)
                if (filtered.length == 0) {
                     return res.status(404).send({ status: false, message: "No such data found" })
